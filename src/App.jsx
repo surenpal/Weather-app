@@ -3,21 +3,25 @@ import './index.css'
 import { SearchBar } from "./components/SearchBar"
 import { compile } from "tailwindcss";
 import axios from "axios";
+import { HttpProxy } from "vite";
 
 function App () {
   const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const API_KEY = import .meta.env.VITE_API_KEY
-  const API_URL = `https://openweathermap.org/current`
+  const API_KEY = import.meta.env.VITE_API_KEY
+  const API_URL = "https://api.openweathermap.org/data/2.5/weather"
+
 
 
   const fetchWeather = async (city) => {
     setLoading(true);
     setError('');
     try {
-      const url = `${API_URL}? q=${city}; & units=metric&appid= ${API_KEY}`
+      const url =`${API_URL}?q=${city}&units=metric&appid= ${API_KEY}`;
+
+
       const response = await axios.get(url) 
       console.log(response.data)
 

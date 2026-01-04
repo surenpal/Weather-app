@@ -1,11 +1,16 @@
 import React, { useState } from 'react'
 
-export const SearchBar = () => {
-
+export const SearchBar = ({ fetchWeather }) => {
     const [city, setCity] = useState ("")
+    const handleSubmit =(e) => {
+        e.preventDefault();
+        if (city.trim()) {
+            fetchWeather(city) 
+        setCity('   ')  }
+    }
 
   return (
-    <form className=' flex'>
+    <form className=' flex'onSubmit={handleSubmit}>
         <input type="text" placeholder='Enter city name' value={city}
         onChange={(e) => setCity (e.target.value)}
         className='flex-1 p-2 border border-gray-300 rounded-l-lg outline none border-r-0'/>
