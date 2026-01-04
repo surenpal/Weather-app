@@ -17,7 +17,18 @@ function App () {
     setLoading(true);
     setError('');
     try {
-      const url = `${API_URL}? q=${city}; `
+      const url = `${API_URL}? q=${city}; & units=metric&appid= ${API_KEY}`
+      const response = await axios.get(url) 
+      console.log(response.data)
+
+      setWeather(response.data)
+    }
+    catch (error){
+    if (error.response && error.response.status === 404) {
+      setError('City not found');
+    } else {
+      setError('Failed to fetch weather data');
+    }
   }
 
   }
