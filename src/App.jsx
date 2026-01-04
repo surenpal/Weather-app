@@ -1,9 +1,11 @@
-import React from "react"
+import React, { useState } from "react"
 import './index.css'
 import { SearchBar } from "./components/SearchBar"
 
 function App () {
-
+  const [weather, setWeather] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   return (
     <div className = "min-h-screen flex flex-col items-center justify-center bg-blue-100" >
