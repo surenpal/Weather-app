@@ -15,18 +15,23 @@ export const WeatherCard = ({ weather }) => {
             <p className='text-center text-gray-400 capitalize'> 
                 {weather.weather[0].description}
             </p>
-            <div>
-                <div>
-                    <p>Humidity</p>
-                    <p>{weather.main.humidity}%</p>
+            <div className='grid grid-cols-2 gap-4'>
+                <div className='text-center'>
+                    <p className='text-gray-400'>Humidity</p>
+                    <p className='font-bold'>{weather.main.humidity}%</p>
                 </div>
-                 <div>
-                    <p>Wind speed</p>
-                    <p>{weather.wind.speed} m/s</p>
+                 <div className='text-center'>
+                    <p className='text-gray-400'>Wind speed</p>
+                    <p className='font-bold'>{weather.wind.speed} m/s</p>
                 </div>
-                <div>
-                    <p>Feels Like</p>
-                    <p>{Math.round(weather.main.feels_like)}°C</p>
+
+                <div className='text-center'>
+                    <p className='text-gray-400'>Pressure</p>
+                    <p className='font-bold'>{weather.main.pressure} hPa</p>
+                </div>
+                <div className='text-center'>
+                    <p className='text-gray-400'>Feels Like</p>
+                    <p className='font-bold'>{Math.round(weather.main.feels_like)}°C</p>
                 </div>
             </div>
         </div>
