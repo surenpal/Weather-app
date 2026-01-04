@@ -20,5 +20,3 @@ export const SearchBar = ({ fetchWeather }) => {
   )
 }
 
-
-export default SearchBar
