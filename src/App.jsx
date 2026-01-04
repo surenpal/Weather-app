@@ -34,6 +34,8 @@ function App () {
       setError('Failed to fetch weather data, pls try again later.');
     }
     setWeather(null);
+  } finally {
+    setLoading(false)
   }
 
   }
@@ -42,6 +44,8 @@ function App () {
     <div className = "min-h-screen flex flex-col items-center justify-center bg-blue-100" >
       <div className="bg-black/90 text-white rounded-lg shadow-lg p-8 max-w-md w-full"><h1 className = "text-3xl font-bold text-center mb-6">Weather-App</h1>
       <SearchBar fetchWeather= {fetchWeather}/>
+      {loading && <p className="text-center mt-4">Loading...</p>}
+      {error && <p className="text-center mt-4 text-red-500">{error}</p>}
       {weather && <WeatherCard weather={weather} />}
       </div>
     </div>
