@@ -24,6 +24,10 @@ export const WeatherCard = ({ weather }) => {
                     <p>Wind speed</p>
                     <p>{weather.wind.speed} m/s</p>
                 </div>
+                <div>
+                    <p>Feels Like</p>
+                    <p>{Math.round(weather.main.feels_like)}°C</p>
+                </div>
             </div>
         </div>
   )
