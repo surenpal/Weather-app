@@ -3,7 +3,6 @@ import './index.css'
 import { SearchBar } from "./components/SearchBar"
 import { compile } from "tailwindcss";
 import axios from "axios";
-import { HttpProxy } from "vite";
 
 function App () {
   const [weather, setWeather] = useState(null);
@@ -19,7 +18,7 @@ function App () {
     setLoading(true);
     setError('');
     try {
-      const url =`${API_URL}?q=${city}&units=metric&appid= ${API_KEY}`;
+      const url =`${API_URL}?q=${city}&units=metric&appid=${API_KEY}`;
 
 
       const response = await axios.get(url) 
