@@ -42,9 +42,14 @@ function App () {
 
   return (
     <div className = "min-h-screen flex flex-col items-center justify-center bg-blue-100 relative overflow-hidden" >
-      <video autoplay loop muted className="absolute top-0 left-0 w-full h-full object-cover" 
-      src="./src/assets/bg-video.MP4" type= "video/mp4"></video>
-      <div className="absolute top-0 left-0 w-full h-full bg-black/20 z-1"></div>
+      <video
+        autoPlay
+        loop
+        muted
+        className="absolute top-0 left-0 w-full h-full object-cover z-0"
+        src="/bg_video.mp4"
+        type="video/mp4"/>
+      <div className="absolute top-0 left-0 w-full h-full bg-black/10 z-10"></div>
       <div className="bg-black/65 text-white rounded-lg shadow-lg p-8 max-w-md w-full  z-10">
       <h1 className = "text-3xl font-bold text-center mb-6">Weather-App</h1>
       <SearchBar fetchWeather= {fetchWeather}/>
