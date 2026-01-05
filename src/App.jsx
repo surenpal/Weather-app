@@ -51,7 +51,7 @@ function App () {
         type="video/mp4"/>
       <div className="absolute top-0 left-0 w-full h-full bg-black/10 z-10"></div>
       <div className="bg-black/65 text-white rounded-lg shadow-lg p-8 max-w-md w-full  z-10">
-      <h1 className = "text-3xl font-bold text-center mb-6">Weather-App</h1>
+      <h1 className = "text-3xl font-bold text-center mb-6">Jirel-Weather</h1>
       <SearchBar fetchWeather= {fetchWeather}/>
       {loading && <p className="text-center mt-4">Loading...</p>}
       {error && <p className="text-center mt-4 text-red-500">{error}</p>}
