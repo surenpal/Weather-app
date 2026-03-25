@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 
+
 export const SearchBar = ({ fetchWeather, apiKey, geoUrl }) => {
   const [city, setCity] = useState("");
   const [suggestions, setSuggestions] = useState([]);
