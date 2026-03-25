@@ -1,42 +1,78 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 
 export const SearchBar = ({ fetchWeather, apiKey, geoUrl }) => {
   const [city, setCity] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const [lastQuery, setLastQuery] = useState("");
 
+  const wrapperRef = useRef(null);
+  const cancelTokenRef = useRef(null);
+
+  // Debounce input
   useEffect(() => {
     const handler = setTimeout(() => {
-      if (city.trim().length > 1) {
-        fetchSuggestions(city.trim());
+      const trimmed = city.trim();
+
+      if (trimmed.length > 1 && trimmed !== lastQuery) {
+        fetchSuggestions(trimmed);
+        setLastQuery(trimmed);
       } else {
         setSuggestions([]);
+        setShowDropdown(false);
       }
     }, 400);
 
     return () => clearTimeout(handler);
   }, [city]);
 
+  // Click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
+
   const fetchSuggestions = async (query) => {
     try {
-      const url = `${geoUrl}?q=${encodeURIComponent(
-        query
-      )}&limit=5&appid=${apiKey}`;
-      const res = await axios.get(url);
-      setSuggestions(res.data || []);
-      setShowDropdown(true);
-    } catch {
-      setSuggestions([]);
+      // Cancel previous request
+      if (cancelTokenRef.current) {
+        cancelTokenRef.current.cancel();
+      }
+
+      cancelTokenRef.current = axios.CancelToken.source();
+
+      const url = `${geoUrl}?q=${encodeURIComponent(query)}&limit=5&appid=${apiKey}`;
+      const res = await axios.get(url, {
+        cancelToken: cancelTokenRef.current.token,
+      });
+
+      const data = Array.isArray(res.data) ? res.data : [];
+      setSuggestions(data);
+      setShowDropdown(data.length > 0);
+      setActiveIndex(-1);
+    } catch (err) {
+      if (!axios.isCancel(err)) {
+        console.error(err);
+        setSuggestions([]);
+        setShowDropdown(false);
+      }
     }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (city.trim()) {
-      fetchWeather(city);
-      setCity("");
+    const trimmed = city.trim();
+    if (trimmed) {
+      fetchWeather(trimmed);
       setSuggestions([]);
       setShowDropdown(false);
     }
@@ -44,25 +80,38 @@ export const SearchBar = ({ fetchWeather, apiKey, geoUrl }) => {
 
   const handleSelectSuggestion = (s) => {
     const name = s.state ? `${s.name}, ${s.state}` : s.name;
+
     setCity(name);
     fetchWeather(name);
     setSuggestions([]);
     setShowDropdown(false);
   };
 
+  const handleKeyDown = (e) => {
+    if (!showDropdown) return;
+
+    if (e.key === "ArrowDown") {
+      setActiveIndex((prev) => Math.min(prev + 1, suggestions.length - 1));
+    } else if (e.key === "ArrowUp") {
+      setActiveIndex((prev) => Math.max(prev - 1, 0));
+    } else if (e.key === "Enter" && activeIndex >= 0) {
+      e.preventDefault();
+      handleSelectSuggestion(suggestions[activeIndex]);
+    }
+  };
+
   return (
-    <div className="relative">
+    <div ref={wrapperRef} className="relative">
       <form className="flex" onSubmit={handleSubmit}>
         <input
           type="text"
           placeholder="Enter city name"
           value={city}
-          onChange={(e) => {
-            setCity(e.target.value);
-          }}
+          onChange={(e) => setCity(e.target.value)}
           onFocus={() => {
             if (suggestions.length > 0) setShowDropdown(true);
           }}
+          onKeyDown={handleKeyDown}
           className="flex-1 p-2 border border-gray-300 rounded-l-lg border-r-0 
                      outline-none focus:ring-2 focus:ring-blue-400 transition 
                      text-black"
@@ -76,21 +125,31 @@ export const SearchBar = ({ fetchWeather, apiKey, geoUrl }) => {
         </button>
       </form>
 
-      {showDropdown && suggestions.length > 0 && (
+      {showDropdown && (
         <ul
           className="absolute left-0 right-0 mt-1 bg-white text-black rounded-lg 
                      shadow-lg max-h-60 overflow-y-auto z-30"
         >
-          {suggestions.map((s, index) => (
-            <li
-              key={`${s.lat}-${s.lon}-${index}`}
-              onClick={() => handleSelectSuggestion(s)}
-              className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
-            >
-              {s.name}
-              {s.state ? `, ${s.state}` : ""} {s.country && `(${s.country})`}
+          {suggestions.length > 0 ? (
+            suggestions.map((s) => (
+              <li
+                key={`${s.lat}-${s.lon}`}
+                onClick={() => handleSelectSuggestion(s)}
+                className={`px-3 py-2 cursor-pointer text-sm ${
+                  suggestions.indexOf(s) === activeIndex
+                    ? "bg-gray-200"
+                    : "hover:bg-gray-100"
+                }`}
+              >
+                {s.name || "Unknown"}
+                {s.state ? `, ${s.state}` : ""} {s.country ? `(${s.country})` : ""}
+              </li>
+            ))
+          ) : (
+            <li className="px-3 py-2 text-sm text-gray-500">
+              No results found
             </li>
-          ))}
+          )}
         </ul>
       )}
     </div>
