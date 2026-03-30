@@ -23,20 +23,20 @@ function App() {
 
     list.forEach((item) => {
       const date = new Date(item.dt * 1000);
-      const dayKey = date.toLocaleDateString();
+      const key = date.toLocaleDateString();
 
-      if (!dailyMap[dayKey] && item.dt_txt.includes("12:00:00")) {
-        dailyMap[dayKey] = item;
+      if (!dailyMap[key] && item.dt_txt.includes("12:00:00")) {
+        dailyMap[key] = item;
       }
     });
 
     // fallback
     list.forEach((item) => {
       const date = new Date(item.dt * 1000);
-      const dayKey = date.toLocaleDateString();
+      const key = date.toLocaleDateString();
 
-      if (!dailyMap[dayKey]) {
-        dailyMap[dayKey] = item;
+      if (!dailyMap[key]) {
+        dailyMap[key] = item;
       }
     });
 
@@ -130,28 +130,33 @@ function App() {
     setDarkMode(prefersDark);
   }, []);
 
+  // ✅ RETURN IS NOW CORRECTLY INSIDE FUNCTION
   return (
     <div className={darkMode ? "dark" : ""}>
-      <div className="min-h-screen flex items-center justify-center bg-pink-200 dark:bg-gray-900 relative px-4">
+      <div className="min-h-screen flex items-center justify-center bg-pink-200 dark:bg-black relative px-4">
 
-        {/* ✅ pink overlay */}
-        <div className="absolute inset-0 bg-pink-300/30"></div>
+        {/* overlay */}
+        <div className="absolute inset-0 bg-pink-300/30 dark:bg-black/50"></div>
 
-        {/* ✅ glass card */}
+        {/* glass card */}
         <div className="relative z-10 backdrop-blur-md bg-white/30 dark:bg-gray-800/40 border border-white/40 dark:border-gray-700 text-gray-800 dark:text-white rounded-xl shadow-xl p-8 max-w-md w-full">
 
           <div className="flex justify-between mb-4">
             <h1 className="text-2xl font-bold">Weather App</h1>
 
             <button
-              onClick={() => setDarkMode(!darkMode)}
+              onClick={() => setDarkMode(prev => !prev)}
               className="px-3 py-1 text-sm rounded bg-black/30 text-white"
             >
               {darkMode ? "Light" : "Dark"}
             </button>
           </div>
 
-          <SearchBar fetchWeather={fetchWeatherByCity} />
+          <SearchBar
+            fetchWeather={fetchWeatherByCity}
+            apiKey={API_KEY}
+            geoUrl={GEO_URL}
+          />
 
           <button
             onClick={handleUseMyLocation}
