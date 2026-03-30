@@ -17,22 +17,36 @@ function App() {
   const FORECAST_URL = "https://api.openweathermap.org/data/2.5/forecast";
   const GEO_URL = "https://api.openweathermap.org/geo/1.0/direct";
 
+  // ✅ Apply dark mode to <html>
+  useEffect(() => {
+    const root = document.documentElement;
+
+    if (darkMode) {
+      root.classList.add("dark");
+    } else {
+      root.classList.remove("dark");
+    }
+  }, [darkMode]);
+
+  // ✅ Detect system theme on load
+  useEffect(() => {
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    setDarkMode(prefersDark);
+  }, []);
+
+  // ✅ Forecast fix
   const extractDailyForecast = (list) => {
     const map = {};
 
     list.forEach((item) => {
-      const date = new Date(item.dt * 1000);
-      const key = date.toLocaleDateString();
-
+      const key = new Date(item.dt * 1000).toLocaleDateString();
       if (!map[key] && item.dt_txt.includes("12:00:00")) {
         map[key] = item;
       }
     });
 
     list.forEach((item) => {
-      const date = new Date(item.dt * 1000);
-      const key = date.toLocaleDateString();
-
+      const key = new Date(item.dt * 1000).toLocaleDateString();
       if (!map[key]) map[key] = item;
     });
 
@@ -76,16 +90,14 @@ function App() {
     });
   };
 
-  useEffect(() => {
-    setDarkMode(window.matchMedia("(prefers-color-scheme: dark)").matches);
-  }, []);
-
   return (
-    <div className={darkMode ? "dark" : ""}>
+    <div>
       <div className="min-h-screen flex items-center justify-center bg-pink-200 dark:bg-black relative px-4">
 
+        {/* overlay */}
         <div className="absolute inset-0 bg-pink-300/30 dark:bg-black/50"></div>
 
+        {/* glass card */}
         <div className="relative z-10 backdrop-blur-md bg-white/30 dark:bg-gray-800/40 border border-white/40 dark:border-gray-700 text-gray-800 dark:text-white rounded-xl shadow-xl p-8 max-w-md w-full">
 
           <div className="flex justify-between mb-4">
