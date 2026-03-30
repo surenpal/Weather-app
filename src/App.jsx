@@ -156,7 +156,7 @@ function App() {
 
   return (
     <div className={darkMode ? "dark" : ""}>
-      <div className="min-h-screen flex flex-col items-center justify-center bg-blue-100 dark:bg-gray-900 relative overflow-hidden px-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-pink-200 dark:bg-gray-900 relative overflow-hidden px-4">
         <video
           autoPlay
           loop
@@ -166,7 +166,8 @@ function App() {
           type="video/mp4"
         />
 
-        <div className="absolute top-0 left-0 w-full h-full bg-black/30 z-10"></div>
+        {/* Pink overlay instead of black */}
+        <div className="absolute top-0 left-0 w-full h-full bg-pink-300/30 z-10"></div>
 
         <div
           className="backdrop-blur-md bg-white/20 dark:bg-gray-800/40 
