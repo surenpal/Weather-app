@@ -17,9 +17,51 @@ function App() {
   const FORECAST_URL = "https://api.openweathermap.org/data/2.5/forecast";
   const GEO_URL = "https://api.openweathermap.org/geo/1.0/direct";
 
+  // ✅ FIXED forecast (no duplicate days)
+  const extractDailyForecast = (list) => {
+    const dailyMap = {};
+
+    list.forEach((item) => {
+      const date = new Date(item.dt * 1000);
+      const dayKey = date.toLocaleDateString();
+
+      if (!dailyMap[dayKey] && item.dt_txt.includes("12:00:00")) {
+        dailyMap[dayKey] = item;
+      }
+    });
+
+    // fallback
+    list.forEach((item) => {
+      const date = new Date(item.dt * 1000);
+      const dayKey = date.toLocaleDateString();
+
+      if (!dailyMap[dayKey]) {
+        dailyMap[dayKey] = item;
+      }
+    });
+
+    return Object.values(dailyMap)
+      .sort((a, b) => a.dt - b.dt)
+      .slice(0, 5);
+  };
+
+  // ✅ FIXED error handler
+  const handleAxiosError = (error) => {
+    console.error(error);
+
+    if (error?.response) {
+      if (error.response.status === 404) {
+        setError("City not found.");
+      } else {
+        setError("Failed to fetch weather data.");
+      }
+    } else {
+      setError("Network error.");
+    }
+  };
+
   const fetchWeatherByCity = async (city) => {
-    const trimmedCity = city.trim();
-    if (!trimmedCity) {
+    if (!city.trim()) {
       setError("Please enter a city name.");
       return;
     }
@@ -30,14 +72,15 @@ function App() {
     setForecast([]);
 
     try {
-      const weatherUrl = `${WEATHER_URL}?q=${trimmedCity}&units=metric&appid=${API_KEY}`;
-      const weatherRes = await axios.get(weatherUrl);
+      const weatherRes = await axios.get(
+        `${WEATHER_URL}?q=${city}&units=metric&appid=${API_KEY}`
+      );
       setWeather(weatherRes.data);
 
-      const forecastUrl = `${FORECAST_URL}?q=${trimmedCity}&units=metric&appid=${API_KEY}`;
-      const forecastRes = await axios.get(forecastUrl);
-      const daily = extractDailyForecast(forecastRes.data.list);
-      setForecast(daily);
+      const forecastRes = await axios.get(
+        `${FORECAST_URL}?q=${city}&units=metric&appid=${API_KEY}`
+      );
+      setForecast(extractDailyForecast(forecastRes.data.list));
     } catch (error) {
       handleAxiosError(error);
     } finally {
@@ -48,18 +91,17 @@ function App() {
   const fetchWeatherByCoords = async (lat, lon) => {
     setLoading(true);
     setError("");
-    setWeather(null);
-    setForecast([]);
 
     try {
-      const weatherUrl = `${WEATHER_URL}?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`;
-      const weatherRes = await axios.get(weatherUrl);
+      const weatherRes = await axios.get(
+        `${WEATHER_URL}?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`
+      );
       setWeather(weatherRes.data);
 
-      const forecastUrl = `${FORECAST_URL}?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`;
-      const forecastRes = await axios.get(forecastUrl);
-      const daily = extractDailyForecast(forecastRes.data.list);
-      setForecast(daily);
+      const forecastRes = await axios.get(
+        `${FORECAST_URL}?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`
+      );
+      setForecast(extractDailyForecast(forecastRes.data.list));
     } catch (error) {
       handleAxiosError(error);
     } finally {
@@ -67,56 +109,17 @@ function App() {
     }
   };
 
-  const extractDailyForecast = (list) => {
-    const byDate = {};
-    list.forEach((item) => {
-      const date = item.dt_txt.split(" ")[0];
-      if (!byDate[date]) {
-        byDate[date] = [];
-      }
-      byDate[date].push(item);
-    });
-
-    const daily = Object.keys(byDate).map((date) => {
-      const midday =
-        byDate[date].find((item) => item.dt_txt.includes("12:00:00")) ||
-        byDate[date][0];
-      return midday;
-    });
-
-    return daily.slice(0, 5);
-  };
-
-  const handleAxiosError = (error) => {
-    if (axios.isAxiosError(error)) {
-      if (error.response?.status === 404) {
-        setError("City not found. Please check again.");
-      } else {
-        setError("Failed to fetch weather data. Please try again later.");
-      }
-    } else {
-      setError("Unexpected error occurred.");
-    }
-  };
-
   const handleUseMyLocation = () => {
     if (!navigator.geolocation) {
-      setError("Geolocation is not supported by your browser.");
+      setError("Geolocation not supported.");
       return;
     }
 
-    setLoading(true);
-    setError("");
-
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        fetchWeatherByCoords(latitude, longitude);
+      (pos) => {
+        fetchWeatherByCoords(pos.coords.latitude, pos.coords.longitude);
       },
-      () => {
-        setLoading(false);
-        setError("Unable to retrieve your location.");
-      }
+      () => setError("Location access denied.")
     );
   };
 
@@ -129,53 +132,46 @@ function App() {
 
   return (
     <div className={darkMode ? "dark" : ""}>
-      <div className="min-h-screen flex flex-col items-center justify-center bg-pink-200 dark:bg-gray-900 relative overflow-hidden px-4">
-        {/* Pink overlay kept */}
-        <div className="absolute top-0 left-0 w-full h-full bg-pink-300/30 z-10"></div>
+      <div className="min-h-screen flex items-center justify-center bg-pink-200 dark:bg-gray-900 relative px-4">
 
-        <div
-          className="backdrop-blur-md bg-white/20 dark:bg-gray-800/40 
-                     border border-white/30 dark:border-gray-700 
-                     text-gray-800 dark:text-white rounded-xl shadow-xl p-8 max-w-md w-full z-20"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold">Weather App Suren</h1>
+        {/* ✅ pink overlay */}
+        <div className="absolute inset-0 bg-pink-300/30"></div>
+
+        {/* ✅ glass card */}
+        <div className="relative z-10 backdrop-blur-md bg-white/30 dark:bg-gray-800/40 border border-white/40 dark:border-gray-700 text-gray-800 dark:text-white rounded-xl shadow-xl p-8 max-w-md w-full">
+
+          <div className="flex justify-between mb-4">
+            <h1 className="text-2xl font-bold">Weather App</h1>
+
             <button
-              onClick={() => setDarkMode((prev) => !prev)}
-              className="text-sm px-3 py-1 rounded-full border border-white/40 
-                         bg-black/30 hover:bg-black/50 transition"
+              onClick={() => setDarkMode(!darkMode)}
+              className="px-3 py-1 text-sm rounded bg-black/30 text-white"
             >
               {darkMode ? "Light" : "Dark"}
             </button>
           </div>
 
-          <SearchBar
-            fetchWeather={fetchWeatherByCity}
-            apiKey={API_KEY}
-            geoUrl={GEO_URL}
-          />
+          <SearchBar fetchWeather={fetchWeatherByCity} />
 
-          <div className="flex justify-between items-center mt-3 gap-2">
-            <button
-              onClick={handleUseMyLocation}
-              className="w-full text-sm px-3 py-2 rounded-lg border border-white/40 
-                         bg-black/30 hover:bg-black/50 transition"
-            >
-              Use My Location
-            </button>
-          </div>
+          <button
+            onClick={handleUseMyLocation}
+            className="w-full mt-3 p-2 rounded bg-black/30 text-white"
+          >
+            Use My Location
+          </button>
 
-          {loading && <p className="text-center mt-4">Loading...</p>}
-          {error && <p className="text-center mt-4 text-red-300">{error}</p>}
+          {loading && <p className="mt-4 text-center">Loading...</p>}
+          {error && <p className="mt-4 text-center text-red-500">{error}</p>}
 
           {weather && <WeatherCard weather={weather} />}
 
           {forecast.length > 0 && (
             <div className="mt-6">
-              <h3 className="text-lg font-semibold mb-2 text-center">
+              <h3 className="text-center font-semibold mb-2">
                 5-Day Forecast
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+
+              <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
                 {forecast.map((item) => (
                   <ForecastCard key={item.dt} item={item} />
                 ))}
