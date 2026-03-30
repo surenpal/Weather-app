@@ -17,6 +17,31 @@ function App() {
   const FORECAST_URL = "https://api.openweathermap.org/data/2.5/forecast";
   const GEO_URL = "https://api.openweathermap.org/geo/1.0/direct";
 
+  const getBackgroundVideo = () => {
+    if (!weather) return "/videos/default.mp4";
+
+    const main = weather.weather[0].main;
+    switch (main) {
+      case "Clear":
+        return "/videos/sunny.mp4";
+      case "Clouds":
+        return "/videos/cloudy.mp4";
+      case "Rain":
+      case "Drizzle":
+        return "/videos/rain.mp4";
+      case "Snow":
+        return "/videos/snow.mp4";
+      case "Thunderstorm":
+        return "/videos/storm.mp4";
+      case "Mist":
+      case "Fog":
+      case "Haze":
+        return "/videos/mist.mp4";
+      default:
+        return "/videos/default.mp4";
+    }
+  };
+
   const fetchWeatherByCity = async (city) => {
     const trimmedCity = city.trim();
     if (!trimmedCity) {
@@ -127,13 +152,27 @@ function App() {
     setDarkMode(prefersDark);
   }, []);
 
+  const bgVideo = getBackgroundVideo();
+
   return (
     <div className={darkMode ? "dark" : ""}>
-      <div className="min-h-screen flex flex-col items-center justify-center bg-pink-200 dark:bg-gray-900 px-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-pink-200 dark:bg-gray-900 relative overflow-hidden px-4">
+        <video
+          autoPlay
+          loop
+          muted
+          className="absolute top-0 left-0 w-full h-full object-cover z-0"
+          src={bgVideo}
+          type="video/mp4"
+        />
+
+        {/* Pink overlay instead of black */}
+        <div className="absolute top-0 left-0 w-full h-full bg-pink-300/30 z-10"></div>
+
         <div
-          className="backdrop-blur-md bg-white/30 dark:bg-gray-800/40 
-                     border border-white/40 dark:border-gray-700 
-                     text-white rounded-xl shadow-xl p-8 max-w-md w-full"
+          className="backdrop-blur-md bg-white/20 dark:bg-gray-800/40 
+                     border border-white/30 dark:border-gray-700 
+                     text-white rounded-xl shadow-xl p-8 max-w-md w-full z-20"
         >
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold">Weather App Suren</h1>
