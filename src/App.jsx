@@ -17,27 +17,24 @@ function App() {
   const FORECAST_URL = "https://api.openweathermap.org/data/2.5/forecast";
   const GEO_URL = "https://api.openweathermap.org/geo/1.0/direct";
 
-  // ✅ Apply dark mode to <html>
+  // Apply dark mode to <html>
   useEffect(() => {
     const root = document.documentElement;
-
-    if (darkMode) {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
-    }
+    if (darkMode) root.classList.add("dark");
+    else root.classList.remove("dark");
   }, [darkMode]);
 
-  // ✅ Detect system theme on load
+  // Detect system theme on load
   useEffect(() => {
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     setDarkMode(prefersDark);
   }, []);
 
-  // ✅ Forecast fix
+  // Extract 5-day forecast
   const extractDailyForecast = (list) => {
     const map = {};
 
+    // Prefer 12:00 entries
     list.forEach((item) => {
       const key = new Date(item.dt * 1000).toLocaleDateString();
       if (!map[key] && item.dt_txt.includes("12:00:00")) {
@@ -45,6 +42,7 @@ function App() {
       }
     });
 
+    // Fallback: first available entry
     list.forEach((item) => {
       const key = new Date(item.dt * 1000).toLocaleDateString();
       if (!map[key]) map[key] = item;
@@ -64,6 +62,11 @@ function App() {
   };
 
   const fetchWeatherByCity = async (city) => {
+    if (!city.trim()) {
+      setError("Please enter a city name.");
+      return;
+    }
+
     setLoading(true);
     setError("");
 
@@ -84,10 +87,39 @@ function App() {
     }
   };
 
+  // FIXED: Fetch weather by coordinates (not city name)
+  const fetchWeatherByCoords = async (lat, lon) => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const w = await axios.get(
+        `${WEATHER_URL}?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`
+      );
+      setWeather(w.data);
+
+      const f = await axios.get(
+        `${FORECAST_URL}?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`
+      );
+      setForecast(extractDailyForecast(f.data.list));
+    } catch (err) {
+      handleAxiosError(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // FIXED: Correct geolocation handling
   const handleUseMyLocation = () => {
-    navigator.geolocation.getCurrentPosition((pos) => {
-      fetchWeatherByCity(`${pos.coords.latitude},${pos.coords.longitude}`);
-    });
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        fetchWeatherByCoords(latitude, longitude);
+      },
+      () => {
+        setError("Unable to access your location.");
+      }
+    );
   };
 
   return (

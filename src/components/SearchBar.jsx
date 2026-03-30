@@ -11,6 +11,7 @@ export const SearchBar = ({ fetchWeather, apiKey, geoUrl }) => {
   const wrapperRef = useRef(null);
   const cancelTokenRef = useRef(null);
 
+  // Debounced suggestion fetch
   useEffect(() => {
     const handler = setTimeout(() => {
       const trimmed = city.trim();
@@ -27,6 +28,7 @@ export const SearchBar = ({ fetchWeather, apiKey, geoUrl }) => {
     return () => clearTimeout(handler);
   }, [city]);
 
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
