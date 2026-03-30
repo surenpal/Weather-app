@@ -17,128 +17,75 @@ function App() {
   const FORECAST_URL = "https://api.openweathermap.org/data/2.5/forecast";
   const GEO_URL = "https://api.openweathermap.org/geo/1.0/direct";
 
-  // ✅ FIXED forecast (no duplicate days)
   const extractDailyForecast = (list) => {
-    const dailyMap = {};
+    const map = {};
 
     list.forEach((item) => {
       const date = new Date(item.dt * 1000);
       const key = date.toLocaleDateString();
 
-      if (!dailyMap[key] && item.dt_txt.includes("12:00:00")) {
-        dailyMap[key] = item;
+      if (!map[key] && item.dt_txt.includes("12:00:00")) {
+        map[key] = item;
       }
     });
 
-    // fallback
     list.forEach((item) => {
       const date = new Date(item.dt * 1000);
       const key = date.toLocaleDateString();
 
-      if (!dailyMap[key]) {
-        dailyMap[key] = item;
-      }
+      if (!map[key]) map[key] = item;
     });
 
-    return Object.values(dailyMap)
+    return Object.values(map)
       .sort((a, b) => a.dt - b.dt)
       .slice(0, 5);
   };
 
-  // ✅ FIXED error handler
   const handleAxiosError = (error) => {
-    console.error(error);
-
-    if (error?.response) {
-      if (error.response.status === 404) {
-        setError("City not found.");
-      } else {
-        setError("Failed to fetch weather data.");
-      }
+    if (error?.response?.status === 404) {
+      setError("City not found.");
     } else {
-      setError("Network error.");
+      setError("Failed to fetch weather.");
     }
   };
 
   const fetchWeatherByCity = async (city) => {
-    if (!city.trim()) {
-      setError("Please enter a city name.");
-      return;
-    }
-
     setLoading(true);
     setError("");
-    setWeather(null);
-    setForecast([]);
 
     try {
-      const weatherRes = await axios.get(
+      const w = await axios.get(
         `${WEATHER_URL}?q=${city}&units=metric&appid=${API_KEY}`
       );
-      setWeather(weatherRes.data);
+      setWeather(w.data);
 
-      const forecastRes = await axios.get(
+      const f = await axios.get(
         `${FORECAST_URL}?q=${city}&units=metric&appid=${API_KEY}`
       );
-      setForecast(extractDailyForecast(forecastRes.data.list));
-    } catch (error) {
-      handleAxiosError(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchWeatherByCoords = async (lat, lon) => {
-    setLoading(true);
-    setError("");
-
-    try {
-      const weatherRes = await axios.get(
-        `${WEATHER_URL}?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`
-      );
-      setWeather(weatherRes.data);
-
-      const forecastRes = await axios.get(
-        `${FORECAST_URL}?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`
-      );
-      setForecast(extractDailyForecast(forecastRes.data.list));
-    } catch (error) {
-      handleAxiosError(error);
+      setForecast(extractDailyForecast(f.data.list));
+    } catch (err) {
+      handleAxiosError(err);
     } finally {
       setLoading(false);
     }
   };
 
   const handleUseMyLocation = () => {
-    if (!navigator.geolocation) {
-      setError("Geolocation not supported.");
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        fetchWeatherByCoords(pos.coords.latitude, pos.coords.longitude);
-      },
-      () => setError("Location access denied.")
-    );
+    navigator.geolocation.getCurrentPosition((pos) => {
+      fetchWeatherByCity(`${pos.coords.latitude},${pos.coords.longitude}`);
+    });
   };
 
   useEffect(() => {
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    ).matches;
-    setDarkMode(prefersDark);
+    setDarkMode(window.matchMedia("(prefers-color-scheme: dark)").matches);
   }, []);
 
-  // ✅ RETURN IS NOW CORRECTLY INSIDE FUNCTION
   return (
     <div className={darkMode ? "dark" : ""}>
       <div className="min-h-screen flex items-center justify-center bg-pink-200 dark:bg-black relative px-4">
 
-        {/* overlay */}
         <div className="absolute inset-0 bg-pink-300/30 dark:bg-black/50"></div>
 
-        {/* glass card */}
         <div className="relative z-10 backdrop-blur-md bg-white/30 dark:bg-gray-800/40 border border-white/40 dark:border-gray-700 text-gray-800 dark:text-white rounded-xl shadow-xl p-8 max-w-md w-full">
 
           <div className="flex justify-between mb-4">
@@ -146,7 +93,7 @@ function App() {
 
             <button
               onClick={() => setDarkMode(prev => !prev)}
-              className="px-3 py-1 text-sm rounded bg-black/30 text-white"
+              className="px-3 py-1 rounded bg-black/30 text-white"
             >
               {darkMode ? "Light" : "Dark"}
             </button>

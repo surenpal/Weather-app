@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 
-
 export const SearchBar = ({ fetchWeather, apiKey, geoUrl }) => {
   const [city, setCity] = useState("");
   const [suggestions, setSuggestions] = useState([]);
@@ -12,7 +11,6 @@ export const SearchBar = ({ fetchWeather, apiKey, geoUrl }) => {
   const wrapperRef = useRef(null);
   const cancelTokenRef = useRef(null);
 
-  // Debounce input
   useEffect(() => {
     const handler = setTimeout(() => {
       const trimmed = city.trim();
@@ -29,7 +27,6 @@ export const SearchBar = ({ fetchWeather, apiKey, geoUrl }) => {
     return () => clearTimeout(handler);
   }, [city]);
 
-  // Click outside to close dropdown
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
@@ -43,7 +40,6 @@ export const SearchBar = ({ fetchWeather, apiKey, geoUrl }) => {
 
   const fetchSuggestions = async (query) => {
     try {
-      // Cancel previous request
       if (cancelTokenRef.current) {
         cancelTokenRef.current.cancel();
       }
@@ -70,8 +66,8 @@ export const SearchBar = ({ fetchWeather, apiKey, geoUrl }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     const trimmed = city.trim();
+
     if (trimmed) {
       fetchWeather(trimmed);
       setSuggestions([]);
@@ -115,7 +111,7 @@ export const SearchBar = ({ fetchWeather, apiKey, geoUrl }) => {
           onKeyDown={handleKeyDown}
           className="flex-1 p-2 border border-gray-300 rounded-l-lg border-r-0 
                      outline-none focus:ring-2 focus:ring-blue-400 transition 
-                     text-black"
+                     text-gray-800 dark:text-white bg-white dark:bg-gray-800"
         />
 
         <button
@@ -128,29 +124,24 @@ export const SearchBar = ({ fetchWeather, apiKey, geoUrl }) => {
 
       {showDropdown && (
         <ul
-          className="absolute left-0 right-0 mt-1 bg-white text-black rounded-lg 
-                     shadow-lg max-h-60 overflow-y-auto z-30"
+          className="absolute left-0 right-0 mt-1 rounded-lg shadow-lg max-h-60 overflow-y-auto z-30
+                     bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
         >
-          {suggestions.length > 0 ? (
-            suggestions.map((s) => (
-              <li
-                key={`${s.lat}-${s.lon}`}
-                onClick={() => handleSelectSuggestion(s)}
-                className={`px-3 py-2 cursor-pointer text-sm ${
-                  suggestions.indexOf(s) === activeIndex
-                    ? "bg-gray-200"
-                    : "hover:bg-gray-100"
-                }`}
-              >
-                {s.name || "Unknown"}
-                {s.state ? `, ${s.state}` : ""} {s.country ? `(${s.country})` : ""}
-              </li>
-            ))
-          ) : (
-            <li className="px-3 py-2 text-sm text-gray-500">
-              No results found
+          {suggestions.map((s, index) => (
+            <li
+              key={`${s.lat}-${s.lon}`}
+              onClick={() => handleSelectSuggestion(s)}
+              className={`px-3 py-2 cursor-pointer text-sm ${
+                index === activeIndex
+                  ? "bg-gray-200 dark:bg-gray-700"
+                  : "hover:bg-gray-100 dark:hover:bg-gray-600"
+              }`}
+            >
+              {s.name}
+              {s.state ? `, ${s.state}` : ""}{" "}
+              {s.country ? `(${s.country})` : ""}
             </li>
-          )}
+          ))}
         </ul>
       )}
     </div>
