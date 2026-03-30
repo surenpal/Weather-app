@@ -2,11 +2,11 @@
 export default {
   content: [
     "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+    "./src/**/*.{js,jsx,ts,tsx}",
   ],
+  darkMode: "class", // 🔥 MUST be this
   theme: {
     extend: {},
   },
-  darkMode: "class", // ✅ needed for your dark toggle
   plugins: [],
 };
