@@ -145,6 +145,7 @@ function App() {
 
           <SearchBar
             fetchWeather={fetchWeatherByCity}
+            fetchWeatherByCoords={fetchWeatherByCoords}
             apiKey={API_KEY}
             geoUrl={GEO_URL}
           />

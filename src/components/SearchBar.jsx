@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 
-export const SearchBar = ({ fetchWeather, apiKey, geoUrl }) => {
+export const SearchBar = ({ fetchWeather, fetchWeatherByCoords, apiKey, geoUrl }) => {
   const [city, setCity] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -77,9 +77,8 @@ export const SearchBar = ({ fetchWeather, apiKey, geoUrl }) => {
 
   const handleSelectSuggestion = (s) => {
     const name = s.state ? `${s.name}, ${s.state}` : s.name;
-
     setCity(name);
-    fetchWeather(name);
+    fetchWeatherByCoords(s.lat, s.lon);
     setSuggestions([]);
     setShowDropdown(false);
   };
