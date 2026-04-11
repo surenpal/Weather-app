@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./index.css";
 import { SearchBar } from "./components/SearchBar";
-import { WeatherCard } from "./components/WeatherCard";
+import { WeatherCard } from "./components/weatherCard";
 import { ForecastCard } from "./components/ForecastCard";
 import axios from "axios";
 
