@@ -7,6 +7,7 @@ import { WeatherSkeleton } from "./components/WeatherSkeleton";
 import axios from "axios";
 import { BsSun, BsMoonStarsFill } from "react-icons/bs";
 import { MdMyLocation } from "react-icons/md";
+import { WiDayCloudy } from "react-icons/wi";
 
 const getBackground = (condition, isNight) => {
   if (isNight) return "linear-gradient(135deg, #0f0c29, #302b63, #24243e)";
@@ -54,6 +55,16 @@ function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unit]);
 
+  // Auto-load last location on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("weather-last-coords");
+    if (saved) {
+      const { lat, lon } = JSON.parse(saved);
+      fetchWeatherByCoords(lat, lon);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const extractDailyForecast = (list) => {
     const map = {};
     list.forEach((item) => {
@@ -78,6 +89,7 @@ function App() {
     try {
       const w = await axios.get(`${WEATHER_URL}?q=${city}&units=${unit}&appid=${API_KEY}`);
       setWeather(w.data);
+      localStorage.setItem("weather-last-coords", JSON.stringify({ lat: w.data.coord.lat, lon: w.data.coord.lon }));
       const f = await axios.get(`${FORECAST_URL}?q=${city}&units=${unit}&appid=${API_KEY}`);
       setForecast(extractDailyForecast(f.data.list));
     } catch (err) { handleAxiosError(err); }
@@ -89,6 +101,7 @@ function App() {
     try {
       const w = await axios.get(`${WEATHER_URL}?lat=${lat}&lon=${lon}&units=${unit}&appid=${API_KEY}`);
       setWeather(w.data);
+      localStorage.setItem("weather-last-coords", JSON.stringify({ lat, lon }));
       const f = await axios.get(`${FORECAST_URL}?lat=${lat}&lon=${lon}&units=${unit}&appid=${API_KEY}`);
       setForecast(extractDailyForecast(f.data.list));
     } catch (err) { handleAxiosError(err); }
@@ -124,16 +137,25 @@ function App() {
 
         {/* Header */}
         <div className="flex justify-between items-center mb-5">
-          <h1 className="text-2xl font-bold tracking-tight">Weather App</h1>
+          <div className="flex items-center gap-1.5">
+            <WiDayCloudy className="text-4xl text-white drop-shadow" />
+            <h1 className="text-2xl font-extrabold tracking-tight text-white drop-shadow">
+              Sky<span className="font-light">cast</span>
+            </h1>
+          </div>
           <div className="flex items-center gap-2">
 
-            {/* °C / °F toggle */}
-            <button
-              onClick={() => setUnit(u => u === "metric" ? "imperial" : "metric")}
-              className="px-3 py-1.5 rounded-lg bg-white/25 dark:bg-white/10 hover:bg-white/40 text-sm font-bold transition"
-            >
-              {unit === "metric" ? "°C" : "°F"}
-            </button>
+            {/* °C / °F segmented toggle */}
+            <div className="flex rounded-lg overflow-hidden bg-white/10 text-sm font-bold">
+              <button
+                onClick={() => setUnit("metric")}
+                className={`px-3 py-1.5 transition ${unit === "metric" ? "bg-white/40" : "hover:bg-white/20"}`}
+              >°C</button>
+              <button
+                onClick={() => setUnit("imperial")}
+                className={`px-3 py-1.5 transition ${unit === "imperial" ? "bg-white/40" : "hover:bg-white/20"}`}
+              >°F</button>
+            </div>
 
             {/* Dark mode toggle */}
             <button

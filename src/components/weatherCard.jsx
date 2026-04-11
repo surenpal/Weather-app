@@ -1,4 +1,3 @@
-import React from "react";
 import {
   WiHumidity,
   WiStrongWind,
@@ -7,6 +6,11 @@ import {
   WiSunrise,
   WiSunset,
 } from "react-icons/wi";
+
+const getWindDir = (deg) => {
+  const dirs = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+  return dirs[Math.round(deg / 45) % 8];
+};
 
 export const WeatherCard = ({ weather, unit }) => {
   const tempUnit = unit === "metric" ? "°C" : "°F";
@@ -26,7 +30,7 @@ export const WeatherCard = ({ weather, unit }) => {
     },
     {
       label: "Wind",
-      value: `${weather.wind.speed} ${windUnit}`,
+      value: `${weather.wind.speed} ${windUnit} · ${getWindDir(weather.wind.deg)}`,
       icon: <WiStrongWind className="text-2xl" />,
     },
     {
