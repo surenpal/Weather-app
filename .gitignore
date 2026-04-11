@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 
 .env
+
+# Claude Code local files
+.claude/
